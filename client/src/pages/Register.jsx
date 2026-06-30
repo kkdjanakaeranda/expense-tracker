@@ -1,9 +1,12 @@
 import { useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AlertCircle, Eye, EyeOff, Lock, Mail, User, Wallet } from "lucide-react";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 function Register(){
+    const navigate = useNavigate();
 
     const [name,setName] = useState("");
     const [email,setEmail] = useState("");
@@ -17,8 +20,8 @@ function Register(){
         try{
             setErrorMessage("");
 
-            const response = await axios.post(
-                "http://localhost:5000/register",
+            await axios.post(
+                `${API_URL}/register`,
                 {
                     name,
                     email,
@@ -27,7 +30,7 @@ function Register(){
             );
 
 
-            alert(response.data.message);
+            navigate("/");
 
 
         }catch(error){
@@ -77,6 +80,7 @@ function Register(){
                                 <User className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                                 <input
                                 placeholder="Name"
+                                value={name}
                                 onChange={(e)=>setName(e.target.value)}
                                 className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-12 pr-4 text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-100"
                                 />
@@ -88,7 +92,9 @@ function Register(){
                             <div className="relative">
                                 <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                                 <input
+                                type="email"
                                 placeholder="Email"
+                                value={email}
                                 onChange={(e)=>setEmail(e.target.value)}
                                 className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-12 pr-4 text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-100"
                                 />
@@ -102,6 +108,7 @@ function Register(){
                                 <input
                                 placeholder="Password"
                                 type={showPassword ? "text" : "password"}
+                                value={password}
                                 onChange={(e)=>setPassword(e.target.value)}
                                 className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-12 pr-12 text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-100"
                                 />
