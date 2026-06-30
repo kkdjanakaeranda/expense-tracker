@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 function Login() {
   const navigate = useNavigate(); // ✅ Inside the component
@@ -40,6 +41,11 @@ function Login() {
       />
 
       <button onClick={login}>Login</button>
+
+      <p>
+            Don't have an account?
+            <Link to="/register"> Register</Link>
+            </p>
     </div>
   );
 }

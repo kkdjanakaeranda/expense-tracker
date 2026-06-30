@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   PieChart,
   Pie,
@@ -23,7 +24,11 @@ function Dashboard() {
   const [editId, setEditId] = useState(null);
   const [type,setType] = useState("expense");
 
+  const navigate = useNavigate();
+
   const token = localStorage.getItem("token");
+
+
 
     if (!token) {
     return <Navigate to="/" />;
@@ -181,9 +186,23 @@ const chartData = [
 
 ];
 
+
+const logout = () => {
+
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+
+  navigate("/");
+
+};
+
   return (
     <div>
       <h1>Expense Dashboard</h1>
+
+        <button onClick={logout}>
+        Logout
+      </button>
 
       <h2>
     Income: Rs. {totalIncome}
