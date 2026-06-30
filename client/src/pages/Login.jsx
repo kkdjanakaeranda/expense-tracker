@@ -1,92 +1,47 @@
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
+function Login() {
+  const navigate = useNavigate(); // ✅ Inside the component
 
-function Login(){
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
+  const login = async () => {
+    try {
+      const response = await axios.post("http://localhost:5000/login", {
+        email,
+        password,
+      });
 
-const [email,setEmail]=useState("");
-const [password,setPassword]=useState("");
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
 
-
-
-const login = async()=>{
-
-
-    try{
-
-        const response = await axios.post(
-
-            "http://localhost:5000/login",
-
-            {
-                email,
-                password
-            }
-
-        );
-
-
-        localStorage.setItem(
-            "token",
-            response.data.token
-        );
-
-
-        alert("Login successful");
-
-
-    }catch(error){
-
-        console.log(error);
-
+      navigate("/dashboard");
+    } catch (error) {
+      console.error(error);
     }
+  };
 
+  return (
+    <div>
+      <h2>Login</h2>
+
+      <input
+        placeholder="Email"
+        onChange={(e) => setEmail(e.target.value)}
+      />
+
+      <input
+        type="password"
+        placeholder="Password"
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      <button onClick={login}>Login</button>
+    </div>
+  );
 }
-
-
-
-return(
-
-<div>
-
-<h2>Login</h2>
-
-
-<input
-
-placeholder="Email"
-
-onChange={(e)=>setEmail(e.target.value)}
-
-/>
-
-
-<input
-
-placeholder="Password"
-
-type="password"
-
-onChange={(e)=>setPassword(e.target.value)}
-
-/>
-
-
-<button onClick={login}>
-
-Login
-
-</button>
-
-
-</div>
-
-
-)
-
-
-}
-
 
 export default Login;

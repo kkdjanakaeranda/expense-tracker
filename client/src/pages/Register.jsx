@@ -1,5 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
+
+
 
 function Register(){
 
@@ -63,6 +66,10 @@ function Register(){
                 Register
             </button>
 
+            <p>
+            Already have an account?
+            <Link to="/"> Login</Link>
+            </p>
 
         </div>
     )
