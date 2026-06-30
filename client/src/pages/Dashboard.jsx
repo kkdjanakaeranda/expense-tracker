@@ -34,6 +34,11 @@ import {
 
 const COLORS = ["#ef4444", "#f97316", "#eab308", "#14b8a6", "#3b82f6", "#8b5cf6"];
 
+const DEFAULT_CATEGORIES = {
+  expense: ["Food", "Transport", "Bills", "Shopping", "Health", "Education", "Entertainment", "Other"],
+  income: ["Salary", "Freelance", "Business", "Investment", "Gift", "Other"]
+};
+
 const formatCurrency = (value) => `Rs. ${Number(value || 0).toLocaleString()}`;
 
 const formatDate = (expense) => {
@@ -103,6 +108,7 @@ function Dashboard() {
   const [description, setDescription] = useState("");
   const [editId, setEditId] = useState(null);
   const [type,setType] = useState("expense");
+  const [customCategories,setCustomCategories] = useState([]);
 
   const navigate = useNavigate();
 
@@ -176,6 +182,10 @@ function Dashboard() {
     setCategory("");
 
     setDescription("");
+
+    if (category && !customCategories.includes(category)) {
+      setCustomCategories([...customCategories, category]);
+    }
 
     getExpenses();
 
@@ -268,6 +278,18 @@ const chartData = [
 }
 
 ];
+
+const savedCategories = expenses
+  .map((item) => item.category)
+  .filter(Boolean);
+
+const categoryOptions = [...new Set([...DEFAULT_CATEGORIES[type], ...customCategories, ...savedCategories])];
+
+const selectedCategoryValue = categoryOptions.includes(category)
+  ? category
+  : category
+    ? "__custom__"
+    : "";
 
 
 const logout = () => {
@@ -364,12 +386,30 @@ const logout = () => {
               </Field>
 
               <Field label="Category" icon={Tag}>
-                <input
-                  placeholder="Category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-100"
-                />
+                <div className="space-y-3">
+                  <select
+                    value={selectedCategoryValue}
+                    onChange={(e) => setCategory(e.target.value === "__custom__" ? "" : e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-100"
+                  >
+                    <option value="">Select category</option>
+                    {categoryOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                    <option value="__custom__">Custom category</option>
+                  </select>
+
+                  {selectedCategoryValue === "__custom__" && (
+                    <input
+                      placeholder="Add custom category"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-100"
+                    />
+                  )}
+                </div>
               </Field>
 
               <Field label="Description" icon={FileText}>
