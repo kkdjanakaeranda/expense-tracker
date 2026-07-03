@@ -22,7 +22,7 @@ import {
   X
 } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const DEFAULT_CATEGORIES = ["Food", "Transport", "Shopping", "Bills", "Salary", "Health", "Education", "Entertainment", "Other"];
 
