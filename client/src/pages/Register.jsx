@@ -1,9 +1,8 @@
 import { useState } from "react";
-import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { AlertCircle, Eye, EyeOff, Lock, Mail, User, Wallet } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL;
+import api from "../api";
 
 function Register(){
     const navigate = useNavigate();
@@ -20,8 +19,8 @@ function Register(){
         try{
             setErrorMessage("");
 
-            await axios.post(
-                `${API_URL}/register`,
+            await api.post(
+                "/register",
                 {
                     name,
                     email,
