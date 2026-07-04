@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import {
   PieChart as RechartsPieChart,
@@ -34,7 +33,7 @@ import {
   X
 } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL;
+import api from "../api";
 
 const COLORS = ["#ef4444", "#f97316", "#eab308", "#14b8a6", "#3b82f6", "#8b5cf6"];
 
@@ -174,6 +173,7 @@ function Dashboard() {
   const token = localStorage.getItem("token");
   const storedUser = token ? JSON.parse(localStorage.getItem("user")) : null;
   const preferredTimeZone = getPreferredTimeZone();
+  const customCategoryKey = storedUser?.id ? `customCategories:${storedUser.id}` : "customCategories";
 
   const [transactions, setTransactions] = useState([]);
   const [amount, setAmount] = useState("");
@@ -183,25 +183,12 @@ function Dashboard() {
   const [editId, setEditId] = useState(null);
   const [type, setType] = useState("expense");
   const [selectedMonth, setSelectedMonth] = useState(currentMonthValue(preferredTimeZone));
-  const [customCategories, setCustomCategories] = useState([]);
+  const [customCategories, setCustomCategories] = useState(() => JSON.parse(localStorage.getItem(customCategoryKey) || "[]"));
   const [profile, setProfile] = useState(storedUser);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const authHeaders = useMemo(() => ({
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  }), [token]);
-
-  const customCategoryKey = storedUser?.id ? `customCategories:${storedUser.id}` : "customCategories";
-
-  useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem(customCategoryKey) || "[]");
-    setCustomCategories(saved);
-  }, [customCategoryKey]);
 
   const saveCustomCategories = useCallback((categories) => {
     setCustomCategories(categories);
@@ -226,7 +213,7 @@ function Dashboard() {
 
     try {
       setIsLoading(true);
-      const res = await axios.get(`${API_URL}/transactions`, authHeaders);
+      const res = await api.get("/transactions");
       setTransactions(res.data);
     } catch (error) {
       if (!handleAuthError(error)) {
@@ -235,7 +222,7 @@ function Dashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, [authHeaders, handleAuthError, token]);
+  }, [handleAuthError, token]);
 
   const getProfile = useCallback(async () => {
     if (!token) {
@@ -243,17 +230,19 @@ function Dashboard() {
     }
 
     try {
-      const res = await axios.get(`${API_URL}/profile`, authHeaders);
+      const res = await api.get("/profile");
       setProfile(res.data);
       localStorage.setItem("user", JSON.stringify(res.data));
     } catch (error) {
       handleAuthError(error);
     }
-  }, [authHeaders, handleAuthError, token]);
+  }, [handleAuthError, token]);
 
   useEffect(() => {
-    getTransactions();
-    getProfile();
+    Promise.resolve().then(() => {
+      getTransactions();
+      getProfile();
+    });
   }, [getTransactions, getProfile]);
 
   if (!token) {
@@ -331,27 +320,25 @@ function Dashboard() {
       setMessage("");
 
       if (editId) {
-        await axios.put(
-          `${API_URL}/expense/${editId}`,
+        await api.put(
+          `/expense/${editId}`,
           {
             amount: numericAmount,
             category,
             description,
             transaction_date: transactionDate
-          },
-          authHeaders
+          }
         );
         setMessage("Transaction updated.");
       } else {
-        await axios.post(
-          type === "expense" ? `${API_URL}/expense` : `${API_URL}/income`,
+        await api.post(
+          type === "expense" ? "/expense" : "/income",
           {
             amount: numericAmount,
             category,
             description,
             transaction_date: transactionDate
-          },
-          authHeaders
+          }
         );
         setMessage("Transaction added.");
       }
@@ -381,7 +368,7 @@ function Dashboard() {
     try {
       setErrorMessage("");
       setMessage("");
-      await axios.delete(`${API_URL}/expense/${id}`, authHeaders);
+      await api.delete(`/expense/${id}`);
       setMessage("Transaction deleted.");
       getTransactions();
     } catch (error) {
