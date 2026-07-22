@@ -1,10 +1,9 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { AlertCircle, Eye, EyeOff, Lock, Mail, Wallet } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL;
+import api from "../api";
 
 function Login() {
   const navigate = useNavigate();
@@ -18,7 +17,7 @@ function Login() {
     try {
       setErrorMessage("");
 
-      const response = await axios.post(`${API_URL}/login`, {
+      const response = await api.post("/login", {
         email,
         password,
       });

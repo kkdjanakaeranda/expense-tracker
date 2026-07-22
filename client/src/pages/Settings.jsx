@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -8,7 +7,6 @@ import {
   Filter,
   Globe2,
   KeyRound,
-  ListChecks,
   LogOut,
   Mail,
   PlusCircle,
@@ -22,7 +20,7 @@ import {
   X
 } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL;
+import api from "../api";
 
 const DEFAULT_CATEGORIES = ["Food", "Transport", "Shopping", "Bills", "Salary", "Health", "Education", "Entertainment", "Other"];
 
@@ -151,16 +149,19 @@ function Settings() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const storedUser = token ? JSON.parse(localStorage.getItem("user")) : null;
+  const customCategoryKey = storedUser?.id ? `customCategories:${storedUser.id}` : "customCategories";
+  const filterKey = storedUser?.id ? `settingsFilters:${storedUser.id}` : "settingsFilters";
+  const savedFilters = JSON.parse(localStorage.getItem(filterKey) || "{}");
 
   const [transactions, setTransactions] = useState([]);
   const [profile, setProfile] = useState(storedUser);
   const [profileName, setProfileName] = useState(storedUser?.name || "");
   const [profileEmail, setProfileEmail] = useState(storedUser?.email || "");
-  const [customCategories, setCustomCategories] = useState([]);
+  const [customCategories, setCustomCategories] = useState(() => JSON.parse(localStorage.getItem(customCategoryKey) || "[]"));
   const [newCategory, setNewCategory] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState(savedFilters.category || "");
+  const [startDate, setStartDate] = useState(savedFilters.startDate || "");
+  const [endDate, setEndDate] = useState(savedFilters.endDate || "");
   const [selectedTimeZone, setSelectedTimeZone] = useState(getPreferredTimeZone());
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -170,15 +171,6 @@ function Settings() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const authHeaders = useMemo(() => ({
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  }), [token]);
-
-  const customCategoryKey = storedUser?.id ? `customCategories:${storedUser.id}` : "customCategories";
-  const filterKey = storedUser?.id ? `settingsFilters:${storedUser.id}` : "settingsFilters";
 
   const handleAuthError = useCallback((error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
@@ -192,16 +184,6 @@ function Settings() {
   }, [navigate]);
 
   useEffect(() => {
-    const savedCategories = JSON.parse(localStorage.getItem(customCategoryKey) || "[]");
-    const savedFilters = JSON.parse(localStorage.getItem(filterKey) || "{}");
-
-    setCustomCategories(savedCategories);
-    setCategoryFilter(savedFilters.category || "");
-    setStartDate(savedFilters.startDate || "");
-    setEndDate(savedFilters.endDate || "");
-  }, [customCategoryKey, filterKey]);
-
-  useEffect(() => {
     if (!token) {
       return;
     }
@@ -210,8 +192,8 @@ function Settings() {
       try {
         setIsLoading(true);
         const [transactionsRes, profileRes] = await Promise.all([
-          axios.get(`${API_URL}/transactions`, authHeaders),
-          axios.get(`${API_URL}/profile`, authHeaders)
+          api.get("/transactions"),
+          api.get("/profile")
         ]);
 
         setTransactions(transactionsRes.data);
@@ -229,7 +211,7 @@ function Settings() {
     };
 
     loadSettingsData();
-  }, [authHeaders, handleAuthError, token]);
+  }, [handleAuthError, token]);
 
   if (!token) {
     return <Navigate to="/" />;
@@ -362,13 +344,12 @@ function Settings() {
       setMessage("");
       setErrorMessage("");
 
-      const res = await axios.put(
-        `${API_URL}/profile`,
+      const res = await api.put(
+        "/profile",
         {
           name: profileName.trim(),
           email: profileEmail.trim()
-        },
-        authHeaders
+        }
       );
 
       setProfile(res.data.user);
@@ -401,13 +382,12 @@ function Settings() {
       setMessage("");
       setErrorMessage("");
 
-      await axios.put(
-        `${API_URL}/profile/password`,
+      await api.put(
+        "/profile/password",
         {
           currentPassword,
           newPassword
-        },
-        authHeaders
+        }
       );
 
       setCurrentPassword("");
